@@ -1,0 +1,629 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VIE DUCK RACE</title>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+
+body{
+ background:#101827;
+ color:white;
+ font-family:Arial,sans-serif;
+ padding:18px;
+}
+
+.app{max-width:1100px;margin:auto}
+
+header{
+ text-align:center;
+ padding:25px 10px;
+}
+
+header h1{
+ font-size:clamp(30px,6vw,48px);
+ color:#ffe16a;
+ text-shadow:0 0 20px #ffbb3355;
+}
+
+header p{color:#aab7cc;margin-top:10px}
+
+.card{
+ background:#1b2639;
+ border:1px solid #34435c;
+ border-radius:17px;
+ padding:20px;
+ margin-bottom:18px;
+}
+
+h2{font-size:17px;margin-bottom:15px}
+
+textarea,input,select{
+ width:100%;
+ background:#101827;
+ color:white;
+ border:1px solid #465671;
+ border-radius:10px;
+ padding:12px;
+ outline:none;
+ margin-top:8px;
+}
+
+textarea{height:140px;resize:vertical}
+
+label{font-size:13px;color:#c6d2e5}
+
+.grid{
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:15px;
+}
+
+.colors{
+ display:grid;
+ grid-template-columns:repeat(4,1fr);
+ gap:9px;
+ margin-top:12px;
+}
+
+.color-option{
+ border:2px solid transparent;
+ background:#101827;
+ border-radius:10px;
+ padding:10px 5px;
+ cursor:pointer;
+ text-align:center;
+ font-size:12px;
+}
+
+.color-option.active{border-color:#ffe16a}
+
+.color-dot{
+ width:25px;height:25px;
+ border-radius:50%;
+ display:block;
+ margin:0 auto 7px;
+ border:2px solid #ffffff55;
+}
+
+button{
+ border:none;
+ border-radius:11px;
+ padding:14px;
+ font-weight:bold;
+ cursor:pointer;
+}
+
+.start{
+ width:100%;
+ background:linear-gradient(100deg,#ffb52d,#ffe66b);
+ color:#29200a;
+ font-size:18px;
+ margin-top:18px;
+}
+
+.start:disabled{opacity:.5;cursor:not-allowed}
+
+.reset{
+ background:#34445e;
+ color:white;
+ width:100%;
+ margin-top:10px;
+}
+
+.track{
+ background:#26374a;
+ border-radius:14px;
+ overflow:hidden;
+ border:2px solid #526780;
+}
+
+.lane{
+ height:76px;
+ position:relative;
+ border-bottom:2px dashed #75859a66;
+ background:linear-gradient(180deg,#315343,#284938);
+ overflow:hidden;
+}
+
+.lane:last-child{border:0}
+
+.lane:nth-child(even){
+ background:linear-gradient(180deg,#294a3c,#223f33);
+}
+
+.duck{
+ position:absolute;
+ left:5px;
+ top:50%;
+ transform:translateY(-50%);
+ font-size:37px;
+ z-index:2;
+ transition:left .1s linear;
+}
+
+.duck-name{
+ position:absolute;
+ left:55px;
+ top:5px;
+ font-size:11px;
+ color:#fff;
+ background:#0008;
+ padding:4px 7px;
+ border-radius:6px;
+ max-width:45%;
+ overflow:hidden;
+ text-overflow:ellipsis;
+ white-space:nowrap;
+}
+
+.finish{
+ position:absolute;
+ right:30px;
+ top:0;
+ height:100%;
+ width:7px;
+ background:repeating-linear-gradient(
+  0deg,#fff 0 8px,#111 8px 16px
+ );
+ z-index:1;
+}
+
+.finish-label{
+ position:absolute;
+ right:12px;
+ bottom:2px;
+ font-size:9px;
+ color:white;
+ z-index:3;
+}
+
+.progress{
+ position:absolute;
+ bottom:5px;
+ left:55px;
+ height:3px;
+ background:#ffdf63;
+ width:0%;
+ border-radius:5px;
+}
+
+.results{
+ display:flex;
+ flex-direction:column;
+ gap:9px;
+}
+
+.result{
+ display:flex;
+ align-items:center;
+ gap:12px;
+ background:#101827;
+ padding:12px;
+ border-radius:10px;
+}
+
+.rank{font-size:20px;width:35px}
+
+.winner{
+ border:1px solid #e8be42;
+ background:#493d1c;
+}
+
+.result-name{flex:1;overflow-wrap:anywhere}
+
+.result small{color:#aebbd0}
+
+.status{
+ text-align:center;
+ padding:15px;
+ color:#ffe16a;
+ font-weight:bold;
+}
+
+.stats{
+ display:grid;
+ grid-template-columns:repeat(3,1fr);
+ gap:10px;
+}
+
+.stat{
+ background:#101827;
+ padding:15px;
+ border-radius:10px;
+ text-align:center;
+}
+
+.stat strong{display:block;font-size:22px;color:#ffe16a}
+.stat span{font-size:11px;color:#9daec5}
+
+@media(max-width:600px){
+ body{padding:10px}
+ .grid{grid-template-columns:1fr}
+ .colors{grid-template-columns:repeat(4,1fr)}
+ .lane{height:68px}
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+<header>
+ <h1>🦆 VIE DUCK RACE</h1>
+ <p>Đại hội đua vịt – Ai sẽ là nhà vô địch?</p>
+</header>
+
+<section class="card">
+ <h2>👥 Danh sách người chơi</h2>
+ <label>Nhập tên, mỗi dòng tương ứng một con vịt</label>
+ <textarea id="names" placeholder="Nguyễn Văn A&#10;Trần Văn B&#10;Lê Văn C"></textarea>
+ <div style="color:#aab7cc;font-size:12px;margin-top:8px">
+ Số lượng: <span id="count">0</span> người chơi
+ </div>
+</section>
+
+<section class="card">
+ <h2>🎨 Chọn màu vịt</h2>
+ <div class="colors" id="colors"></div>
+</section>
+
+<section class="card">
+ <h2>⚙️ Cài đặt cuộc đua</h2>
+ <div class="grid">
+  <div>
+   <label>Thời gian đua</label>
+   <select id="duration">
+    <option value="12">12 giây</option>
+    <option value="20" selected>20 giây</option>
+    <option value="30">30 giây</option>
+    <option value="45">45 giây</option>
+   </select>
+  </div>
+  <div>
+   <label>Độ hỗn loạn</label>
+   <select id="chaos">
+    <option value="1">Ngẫu nhiên vừa</option>
+    <option value="2" selected>Ngẫu nhiên cao</option>
+    <option value="3">Cực kỳ khó đoán</option>
+   </select>
+  </div>
+ </div>
+
+ <button class="start" id="start">🏁 BẮT ĐẦU ĐUA!</button>
+ <button class="reset" id="reset">↻ Đặt lại cuộc đua</button>
+</section>
+
+<section class="card">
+ <h2>🏟️ ĐƯỜNG ĐUA</h2>
+ <div class="stats">
+  <div class="stat">
+   <strong id="raceCount">0</strong>
+   <span>CUỘC ĐUA</span>
+  </div>
+  <div class="stat">
+   <strong id="duckCount">0</strong>
+   <span>SỐ VỊT</span>
+  </div>
+  <div class="stat">
+   <strong id="finished">0</strong>
+   <span>VỀ ĐÍCH</span>
+  </div>
+ </div>
+ <div class="status" id="status">ĐANG CHỜ XUẤT PHÁT...</div>
+ <div class="track" id="track">
+  <div style="padding:30px;text-align:center;color:#aab7cc">
+   🦆 Nhập tên và nhấn BẮT ĐẦU!
+  </div>
+ </div>
+</section>
+
+<section class="card">
+ <h2>🏆 BẢNG XẾP HẠNG</h2>
+ <div class="results" id="results">
+  <div style="text-align:center;color:#aab7cc;padding:20px">
+   Chưa có kết quả.
+  </div>
+ </div>
+</section>
+
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+const colorList = [
+ {name:"Vàng",emoji:"🟡",filter:"hue-rotate(0deg)"},
+ {name:"Trắng",emoji:"⚪",filter:"grayscale(1) brightness(1.5)"},
+ {name:"Đen",emoji:"⚫",filter:"grayscale(1) brightness(.5)"},
+ {name:"Đỏ",emoji:"🔴",filter:"hue-rotate(120deg)"},
+ {name:"Xanh dương",emoji:"🔵",filter:"hue-rotate(190deg)"},
+ {name:"Xanh lá",emoji:"🟢",filter:"hue-rotate(80deg)"},
+ {name:"Hồng",emoji:"🩷",filter:"hue-rotate(280deg)"},
+ {name:"Tím",emoji:"🟣",filter:"hue-rotate(240deg)"}
+];
+
+let selectedColors = new Set([0,1,2,3,4,5,6,7]);
+let racers = [];
+let racing = false;
+let raceNumber = 0;
+let animationFrame = null;
+let lastTime = 0;
+let elapsed = 0;
+let duration = 20;
+let finishOrder = [];
+
+function renderColors(){
+ $("colors").innerHTML="";
+
+ colorList.forEach((c,i)=>{
+  const b=document.createElement("button");
+  b.className="color-option"+
+   (selectedColors.has(i)?" active":"");
+
+  b.innerHTML=`
+   <span class="color-dot">${c.emoji}</span>
+   ${c.name}
+  `;
+
+  b.onclick=()=>{
+   if(selectedColors.has(i)){
+    if(selectedColors.size===1)return;
+    selectedColors.delete(i);
+   }else selectedColors.add(i);
+   renderColors();
+  };
+
+  $("colors").appendChild(b);
+ });
+}
+
+renderColors();
+
+$("names").addEventListener("input",()=>{
+ const names=$("names").value
+  .split(/\r?\n/)
+  .map(x=>x.trim())
+  .filter(Boolean);
+ $("count").textContent=names.length;
+});
+
+function createRace(){
+
+ const names=$("names").value
+  .split(/\r?\n/)
+  .map(x=>x.trim())
+  .filter(Boolean);
+
+ if(!names.length){
+  alert("Hãy nhập ít nhất một tên!");
+  return false;
+ }
+
+ if(names.length>1000){
+  alert("Bản trình diễn hỗ trợ tối đa 1000 vịt mỗi cuộc đua để giữ hiệu suất trình duyệt.");
+  return false;
+ }
+
+ const colors=[...selectedColors];
+
+ if(!colors.length){
+  alert("Hãy chọn ít nhất một màu!");
+  return false;
+ }
+
+ racers=names.map((name,i)=>({
+  id:i,
+  name,
+  color:colors[Math.floor(Math.random()*colors.length)],
+  position:0,
+  speed:0.35+Math.random()*0.65,
+  luck:Math.random(),
+  wobble:Math.random()*Math.PI*2,
+  finished:false
+ }));
+
+ finishOrder=[];
+ elapsed=0;
+ duration=Number($("duration").value);
+
+ $("track").innerHTML="";
+
+ racers.forEach(r=>{
+  const lane=document.createElement("div");
+  lane.className="lane";
+  lane.innerHTML=`
+   <span class="duck" id="duck-${r.id}"
+    style="filter:${colorList[r.color].filter}">🦆</span>
+   <span class="duck-name"></span>
+   <div class="progress" id="progress-${r.id}"></div>
+   <div class="finish"></div>
+   <span class="finish-label">ĐÍCH</span>
+  `;
+
+  lane.querySelector(".duck-name").textContent=r.name;
+  $("track").appendChild(lane);
+ });
+
+ $("duckCount").textContent=racers.length;
+ $("finished").textContent="0";
+
+ $("results").innerHTML=
+  '<div style="text-align:center;color:#aab7cc">Cuộc đua đang diễn ra...</div>';
+
+ return true;
+}
+
+function startRace(){
+
+ if(racing)return;
+ if(!createRace())return;
+
+ racing=true;
+ raceNumber++;
+
+ $("raceCount").textContent=raceNumber;
+ $("start").disabled=true;
+
+ $("status").textContent="🔊 3... 2... 1... XUẤT PHÁT!";
+
+ setTimeout(()=>{
+  if(!racing)return;
+  $("status").textContent="🦆 CÁC CHÚ VỊT ĐANG TĂNG TỐC!";
+  lastTime=0;
+  animationFrame=requestAnimationFrame(runRace);
+ },1200);
+}
+
+function runRace(timestamp){
+
+ if(!racing)return;
+
+ if(!lastTime)lastTime=timestamp;
+
+ const delta=Math.min((timestamp-lastTime)/1000,.05);
+ lastTime=timestamp;
+
+ elapsed+=delta;
+
+ const chaos=Number($("chaos").value);
+
+ racers.forEach(r=>{
+
+  if(r.finished)return;
+
+  const random=Math.random();
+
+  const variation=chaos===1?.45:chaos===2?.85:1.3;
+
+  const acceleration=
+   (Math.random()-.5)*variation;
+
+  const wobble=
+   Math.sin(elapsed*3+r.wobble)*.13;
+
+  const randomBoost=
+   random>.88?Math.random()*.45:0;
+
+  const speed=Math.max(
+   .08,
+   r.speed+acceleration+wobble+randomBoost
+  );
+
+  r.position+=speed*delta*(100/duration);
+
+  if(r.position>=100){
+   r.position=100;
+   r.finished=true;
+   r.finishTime=elapsed;
+   finishOrder.push(r);
+  }
+
+  const duck=$("duck-"+r.id);
+  const progress=$("progress-"+r.id);
+
+  if(duck)duck.style.left=
+   `calc(${Math.min(r.position,94)}% )`;
+
+  if(progress)progress.style.width=
+   Math.min(r.position,100)+"%";
+
+ });
+
+ $("finished").textContent=finishOrder.length;
+
+ if(finishOrder.length===racers.length){
+  endRace();
+  return;
+ }
+
+ animationFrame=requestAnimationFrame(runRace);
+}
+
+function endRace(){
+
+ racing=false;
+
+ cancelAnimationFrame(animationFrame);
+
+ $("start").disabled=false;
+
+ $("status").textContent=
+  "🏆 CUỘC ĐUA KẾT THÚC!";
+
+ renderResults();
+}
+
+function renderResults(){
+
+ const sorted=[...finishOrder].sort(
+  (a,b)=>a.finishTime-b.finishTime
+ );
+
+ $("results").innerHTML="";
+
+ sorted.forEach((r,i)=>{
+
+  const item=document.createElement("div");
+
+  item.className="result"+(i===0?" winner":"");
+
+  const rank=document.createElement("span");
+  rank.className="rank";
+  rank.textContent=
+   i===0?"🥇":i===1?"🥈":i===2?"🥉":(i+1);
+
+  const name=document.createElement("div");
+  name.className="result-name";
+
+  const strong=document.createElement("strong");
+  strong.textContent="🦆 "+r.name;
+
+  const small=document.createElement("small");
+  small.textContent="Thời gian: "+r.finishTime.toFixed(2)+" giây";
+
+  name.append(strong,document.createElement("br"),small);
+
+  const badge=document.createElement("span");
+  badge.textContent=i===0?"WINNER":"FINISHED";
+
+  item.append(rank,name,badge);
+  $("results").appendChild(item);
+
+ });
+
+ if(sorted.length){
+  $("status").textContent=
+   "🏆 NHÀ VÔ ĐỊCH: "+sorted[0].name;
+ }
+}
+
+function resetRace(){
+
+ racing=false;
+ cancelAnimationFrame(animationFrame);
+
+ racers=[];
+ finishOrder=[];
+
+ $("track").innerHTML=
+  '<div style="padding:30px;text-align:center;color:#aab7cc">🦆 Nhập tên và nhấn BẮT ĐẦU!</div>';
+
+ $("results").innerHTML=
+  '<div style="text-align:center;color:#aab7cc;padding:20px">Chưa có kết quả.</div>';
+
+ $("finished").textContent="0";
+ $("duckCount").textContent="0";
+ $("status").textContent="ĐANG CHỜ XUẤT PHÁT...";
+ $("start").disabled=false;
+}
+
+$("start").onclick=startRace;
+$("reset").onclick=resetRace;
+
+</script>
+</body>
+</html>
